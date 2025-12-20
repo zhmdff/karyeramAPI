@@ -3,15 +3,24 @@
     public class Resume
     {
         public int Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
-        public string Skills { get; set; } = string.Empty;
-        public string Experience { get; set; } = string.Empty;
-        public string Education { get; set; } = string.Empty;
-        public ExperienceLevel ExperienceLevel { get; set; }
-        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
-        //Relations
+        public string? AboutMe { get; set; }
+        public string? Skills { get; set; }
+        public string? Address { get; set; }
+        public decimal? SalaryMin { get; set; }
+        public decimal? SalaryMax { get; set; }
+
+        public int? LocationId { get; set; }
+        public Location? Location { get; set; }
+
+        public EducationLevel Education { get; set; } = EducationLevel.NoEducation;
+        public ExperienceLevel Experience { get; set; } = ExperienceLevel.NoExperience;
+        public JobType DesiredJobType { get; set; } = JobType.FullTime;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? LastUpdated { get; set; }
+
         public int JobSeekerProfileId { get; set; }
-        public virtual JobSeekerProfile JobSeeker { get; set; } = null!;
+        public JobSeekerProfile JobSeeker { get; set; } = null!;
     }
 }

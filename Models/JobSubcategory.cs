@@ -3,11 +3,11 @@
     public class JobSubcategory
     {
         public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public required string Name { get; set; }
 
-        public int JobCategoryId { get; set; }
-        public virtual JobCategory Category { get; set; } = null!;
+        public int CategoryId { get; set; }
+        public JobCategory Category { get; set; } = null!;
 
-        public virtual ICollection<Job> Jobs { get; set; } = new List<Job>();
+        public ICollection<Job> Jobs { get; set; } = new List<Job>();
     }
 }
