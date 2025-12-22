@@ -15,23 +15,14 @@ namespace KaryeramAPI.Repositories
         public Task<User?> GetByEmailAsync(string email) =>
             _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
+        public Task<User?> GetByIdAsync(int id) =>
+            _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+
         public async Task AddAsync(User user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         }
-
-        public Task<User?> GetByRefreshTokenAsync(string refreshToken) =>
-            _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
-
-        public async Task UpdateRefreshTokenAsync(int userId, string newRefreshToken)
-        {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null) return;
-            user.RefreshToken = newRefreshToken;
-            await _context.SaveChangesAsync();
-        }
-
     }
 
 }

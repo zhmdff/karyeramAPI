@@ -11,6 +11,7 @@ namespace KaryeramAPI.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<JobSeekerProfile> JobSeekerProfiles { get; set; }
         public DbSet<EmployerProfile> EmployerProfiles { get; set; }
         public DbSet<Job> Jobs { get; set; }
@@ -71,6 +72,19 @@ namespace KaryeramAPI.Data
                 entity.HasMany(e => e.PostedJobs)
                     .WithOne(j => j.EmployerProfile)
                     .HasForeignKey(j => j.EmployerProfileId);
+            });
+
+            builder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+                entity.Property(t => t.TokenHash).IsRequired();
+                entity.Property(t => t.CreatedAt).IsRequired();
+                entity.Property(t => t.ExpiresAt).IsRequired();
+
+                entity.HasOne(t => t.User)
+                      .WithMany(u => u.RefreshTokens)
+                      .HasForeignKey(t => t.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
 
@@ -136,13 +150,6 @@ namespace KaryeramAPI.Data
                     .WithOne(p => p.User)
                     .HasForeignKey<JobSeekerProfile>(p => p.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
-
-                entity.Property(e => e.RefreshToken)
-                    .HasMaxLength(200)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.RefreshTokenExpiry)
-                    .HasDefaultValueSql("DATEADD(DAY, 30, GETUTCDATE())");
             });
 
             builder.Entity<Job>(entity =>

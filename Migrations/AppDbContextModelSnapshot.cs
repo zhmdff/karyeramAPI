@@ -345,6 +345,34 @@ namespace KaryeramAPI.Migrations
                     b.ToTable("Locations");
                 });
 
+            modelBuilder.Entity("KaryeramAPI.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("KaryeramAPI.Models.Resume", b =>
                 {
                     b.Property<int>("Id")
@@ -439,16 +467,6 @@ namespace KaryeramAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("RefreshToken")
-                        .HasMaxLength(200)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<DateTime>("RefreshTokenExpiry")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("DATEADD(DAY, 30, GETUTCDATE())");
 
                     b.Property<int>("UserRole")
                         .HasColumnType("int");
@@ -558,6 +576,17 @@ namespace KaryeramAPI.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("KaryeramAPI.Models.RefreshToken", b =>
+                {
+                    b.HasOne("KaryeramAPI.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("KaryeramAPI.Models.Resume", b =>
                 {
                     b.HasOne("KaryeramAPI.Models.JobSeekerProfile", "JobSeeker")
@@ -610,6 +639,8 @@ namespace KaryeramAPI.Migrations
                     b.Navigation("EmployerProfile");
 
                     b.Navigation("JobSeekerProfile");
+
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }
