@@ -19,6 +19,7 @@ namespace KaryeramAPI.Repositories
         {
             var tokens = await _context.RefreshTokens
                 .Where(t => t.UserId == userId && t.ExpiresAt > DateTime.UtcNow)
+                .AsNoTracking()
                 .ToListAsync();
 
             return tokens.FirstOrDefault(t =>

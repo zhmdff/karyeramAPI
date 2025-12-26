@@ -2,6 +2,7 @@
 using KaryeramAPI.Helpers;
 using KaryeramAPI.Models;
 using KaryeramAPI.Repositories;
+using System.Security.Claims;
 
 namespace KaryeramAPI.Services
 {
@@ -39,8 +40,7 @@ namespace KaryeramAPI.Services
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
             var user = await _userRepository.GetByEmailAsync(request.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-                throw new Exception("Invalid credentials");
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)) throw new Exception("Invalid credentials");
 
             var refreshToken = JwtHelper.GenerateRefreshToken();
             var refreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
@@ -53,38 +53,46 @@ namespace KaryeramAPI.Services
                 ExpiresAt = DateTime.UtcNow.AddDays(90)
             });
 
-            return new AuthResponse
+            var claims = new[]
             {
-                AccessToken = JwtHelper.GenerateJwtToken(user, _config),
-                RefreshToken = refreshToken
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.UserRole.ToString())
             };
+
+            var accessToken = JwtHelper.GenerateJwtToken(user, _config, claims);
+
+            return new AuthResponse { AccessToken = accessToken };
         }
 
-        public async Task<AuthResponse> RefreshTokenAsync(int userId, string refreshToken)
+        public async Task<AuthResponse> RefreshTokenAsync(int id, string refreshToken)
         {
-            var storedToken = await _tokenRepository.GetAsync(userId, refreshToken);
-            if (storedToken == null)
-                throw new Exception("Invalid or expired refresh token");
-            
-            await _tokenRepository.DeleteAsync(userId, refreshToken);
-            
+            var storedToken = await _tokenRepository.GetAsync(id, refreshToken);
+            if (storedToken == null) throw new Exception("Invalid or expired refresh token");
+
+            await _tokenRepository.DeleteAsync(storedToken.UserId, refreshToken);
+
+            var user = await _userRepository.GetByIdAsync(storedToken.UserId) ?? throw new KeyNotFoundException("User not found");
             var newRefreshToken = JwtHelper.GenerateRefreshToken();
+
             await _tokenRepository.AddAsync(new RefreshToken
-               {
-                UserId = userId,
+            {
+                UserId = user.Id,
                 TokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken),
                 CreatedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddDays(90)
             });
-            
-            var user = await _userRepository.GetByIdAsync(userId);
-            var newAccessToken = JwtHelper.GenerateJwtToken(user!, _config);
 
-            return new AuthResponse
-            {
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken
-            };
+            var claims = new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.UserRole.ToString())
+                };
+
+            var newAccessToken = JwtHelper.GenerateJwtToken(user, _config, claims);
+
+            return new AuthResponse { AccessToken = newAccessToken };
         }
 
     }
