@@ -1,4 +1,6 @@
-﻿namespace KaryeramAPI.DTOs
+﻿using KaryeramAPI.Models;
+
+namespace KaryeramAPI.DTOs
 {
     public class RegisterRequest
     {
@@ -15,6 +17,9 @@
 
     public class AuthResponse
     {
+        public UserDto User { get; set; } = null!;
         public string AccessToken { get; set; } = string.Empty;
     }
+
+    public record UserDto(string Email, string Role);
 }

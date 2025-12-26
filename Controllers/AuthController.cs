@@ -1,8 +1,6 @@
-﻿using Azure.Core;
-using KaryeramAPI.DTOs;
+﻿using KaryeramAPI.DTOs;
 using KaryeramAPI.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -29,7 +27,7 @@ namespace KaryeramAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            var result = await _authService.LoginAsync(request);
+            var result = await _authService.LoginAsync(request, HttpContext);
             return Ok(result);
         }
 

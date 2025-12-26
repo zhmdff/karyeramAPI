@@ -22,8 +22,7 @@ namespace KaryeramAPI.Services
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            if (await _userRepository.ExistsByEmailAsync(request.Email))
-                throw new Exception("User already exists");
+            if (await _userRepository.ExistsByEmailAsync(request.Email)) throw new Exception("User already exists");
 
             var user = new User
             {
@@ -37,10 +36,11 @@ namespace KaryeramAPI.Services
             return new AuthResponse();
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<AuthResponse> LoginAsync(LoginRequest request, HttpContext httpContext)
         {
             var user = await _userRepository.GetByEmailAsync(request.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)) throw new Exception("Invalid credentials");
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+                throw new Exception("Invalid credentials");
 
             var refreshToken = JwtHelper.GenerateRefreshToken();
             var refreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
@@ -53,6 +53,15 @@ namespace KaryeramAPI.Services
                 ExpiresAt = DateTime.UtcNow.AddDays(90)
             });
 
+            httpContext.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddDays(90),
+                Path = "/"
+            });
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -62,7 +71,11 @@ namespace KaryeramAPI.Services
 
             var accessToken = JwtHelper.GenerateJwtToken(user, _config, claims);
 
-            return new AuthResponse { AccessToken = accessToken };
+            return new AuthResponse
+            {
+                AccessToken = accessToken,
+                User = new UserDto(user.Email, user.UserRole.ToString())
+            };
         }
 
         public async Task<AuthResponse> RefreshTokenAsync(int id, string refreshToken)

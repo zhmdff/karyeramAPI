@@ -6,7 +6,7 @@ namespace KaryeramAPI.Services
     public interface IAuthService
     {
         Task<AuthResponse> RegisterAsync(RegisterRequest request);
-        Task<AuthResponse> LoginAsync(LoginRequest request);
+        Task<AuthResponse> LoginAsync(LoginRequest request, HttpContext httpContext);
         Task<AuthResponse> RefreshTokenAsync(int id, string refreshToken);
     }
 }

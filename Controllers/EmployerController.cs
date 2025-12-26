@@ -1,6 +1,4 @@
-﻿using KaryeramAPI.Data;
-using KaryeramAPI.Services;
-using Microsoft.AspNetCore.Http;
+﻿using KaryeramAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KaryeramAPI.Controllers
