@@ -25,10 +25,17 @@ namespace KaryeramAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var result = await _authService.LoginAsync(request, HttpContext);
-            return Ok(result);
+            try
+            {
+                var result = await _authService.LoginAsync(request, HttpContext);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
         }
 
         [Authorize]
@@ -38,15 +45,22 @@ namespace KaryeramAPI.Controllers
             return Ok(new { message = "Token is valid" });
         }
 
-        [Authorize]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            var idString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(idString, out var id)) return Unauthorized();
-            if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken)) return Unauthorized();
-            var result = await _authService.RefreshTokenAsync(id, refreshToken);
-            return Ok(result);
+            if (!Request.Cookies.TryGetValue("refreshToken", out var rawToken)) return Unauthorized();
+
+            var result = await _authService.RefreshTokenAsync(rawToken);
+
+            Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(90)
+            });
+
+            return Ok(new { result.AccessToken });
         }
     }
 

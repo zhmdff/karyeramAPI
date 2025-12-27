@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KaryeramAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251222111638_InitalCreate")]
-    partial class InitalCreate
+    [Migration("20251227172559_Update")]
+    partial class Update
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -361,6 +361,9 @@ namespace KaryeramAPI.Migrations
 
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
