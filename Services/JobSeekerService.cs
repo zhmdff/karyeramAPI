@@ -24,5 +24,17 @@ namespace KaryeramAPI.Services
             return jobSeekerProfile;
         }
 
+        public async Task<JobSeekerProfile> GetJobSeekerProfileByUserIdAsync(int userId)
+        {
+            var jobSeekerProfile = await _jobSeekerRepository.GetProfileByUserIdAsync(userId);
+
+            if (jobSeekerProfile == null)
+            {
+                throw new KeyNotFoundException("Employer profile not found.");
+            }
+
+            return jobSeekerProfile;
+        }
+
     }
 }

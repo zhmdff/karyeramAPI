@@ -1,4 +1,6 @@
-﻿using KaryeramAPI.DTOs;
+﻿using Azure;
+using KaryeramAPI.DTOs;
+using KaryeramAPI.Models;
 using KaryeramAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +14,15 @@ namespace KaryeramAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly IEmployerService _employerService;
+        private readonly IJobSeekerService _jobSeekerService;
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IEmployerService employerService, IJobSeekerService jobSeekerService, IAuthService authService, ILogger<AuthController> logger)
         {
+            _employerService = employerService;
+            _jobSeekerService = jobSeekerService;
             _authService = authService;
             _logger=logger;
         }
@@ -53,14 +59,47 @@ namespace KaryeramAPI.Controllers
         [HttpGet("profile")]
         public async Task<IActionResult> Profile()
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdStr, out var userId))  return Unauthorized();
-            
-            var result = await _authService.GetUserByIdAsync(userId);
-            if (result == null) return NotFound();
+            try
+            {
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!int.TryParse(userIdStr, out var userId))
+                    return Unauthorized();
 
-            return Ok(new UserDto(result.Email, result.UserRole.ToString()));
+                var result = await _authService.GetUserByIdAsync(userId);
+                if (result == null)
+                    return NotFound();
+
+                switch (result.UserRole.ToString().ToLower())
+                {
+                    case "jobseeker":
+                        result.JobSeekerProfile = await _jobSeekerService.GetJobSeekerProfileByUserIdAsync(userId);
+                        break;
+                    case "employer":
+                        result.EmployerProfile = await _employerService.GetEmployerProfileByUserIdAsync(userId);
+                        break;
+                    case "guest":
+                        break;
+                    default:
+                        return BadRequest("Invalid user role");
+                }
+
+                return Ok(new UserProfileResponse
+                {
+                    Id = result.Id,
+                    Name = result.FullName,
+                    Email = result.Email,
+                    Role = result.UserRole.ToString(),
+                    JobSeekerProfile = result.JobSeekerProfile,
+                    EmployerProfile = result.EmployerProfile,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching user profile for user ID: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                return StatusCode(500, "Internal server error");
+            }
         }
+
 
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()

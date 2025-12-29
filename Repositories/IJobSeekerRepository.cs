@@ -5,6 +5,7 @@ namespace KaryeramAPI.Repositories
     public interface IJobSeekerRepository
     {
         Task<JobSeekerProfile?> GetProfileByIdAsync(int id);
+        Task<JobSeekerProfile?> GetProfileByUserIdAsync(int userId);
         Task AddAsync(JobSeekerProfile jobSeekerProfile);
     }
 }

@@ -13,9 +13,21 @@ namespace KaryeramAPI.Services
             _employerRepository = employerRepository;
         }
 
-        public async Task<EmployerProfile> GetEmployerProfileByIdAsync(int id)
+        public async Task<EmployerProfile> GetEmployerProfileByIdAsync(int employerId)
         {
-            var employerProfile = await _employerRepository.GetProfileByIdAsync(id);
+            var employerProfile = await _employerRepository.GetProfileByIdAsync(employerId);
+
+            if (employerProfile == null)
+            {
+                throw new KeyNotFoundException("Employer profile not found.");
+            }
+
+            return employerProfile;
+        }
+
+        public async Task<EmployerProfile> GetEmployerProfileByUserIdAsync(int userId)
+        {
+            var employerProfile = await _employerRepository.GetProfileByIdAsync(userId);
 
             if (employerProfile == null)
             {

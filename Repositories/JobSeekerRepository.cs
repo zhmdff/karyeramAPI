@@ -11,6 +11,8 @@ namespace KaryeramAPI.Repositories
 
         public Task<JobSeekerProfile?> GetProfileByIdAsync(int id) => _context.JobSeekerProfiles.FirstOrDefaultAsync(u => u.Id == id);
 
+        public Task<JobSeekerProfile?> GetProfileByUserIdAsync(int userId) => _context.JobSeekerProfiles.FirstOrDefaultAsync(u => u.UserId == userId);
+
         public async Task AddAsync(JobSeekerProfile jobSeekerProfile)
         {
             _context.JobSeekerProfiles.Add(jobSeekerProfile);
