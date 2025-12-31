@@ -1,4 +1,6 @@
-﻿namespace KaryeramAPI.Models
+﻿using static KaryeramAPI.Enums.Enums;
+
+namespace KaryeramAPI.Models
 {
     public class Resume
     {

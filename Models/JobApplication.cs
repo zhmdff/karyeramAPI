@@ -1,4 +1,6 @@
-﻿namespace KaryeramAPI.Models
+﻿using static KaryeramAPI.Enums.Enums;
+
+namespace KaryeramAPI.Models
 {
     public class JobApplication
     {
@@ -19,14 +21,5 @@
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime StatusChangedAt { get; set; }
-    }
-
-    public enum ApplicationStatus
-    {
-        Pending,
-        Reviewed,
-        Interview,
-        Offered,
-        Rejected
     }
 }

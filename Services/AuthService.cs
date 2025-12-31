@@ -5,6 +5,7 @@ using KaryeramAPI.Repositories;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using static KaryeramAPI.Enums.Enums;
 
 namespace KaryeramAPI.Services
 {
@@ -24,13 +25,16 @@ namespace KaryeramAPI.Services
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            if (await _userRepository.ExistsByEmailAsync(request.Email)) throw new Exception("User already exists");
+            if (await _userRepository.ExistsByEmailAsync(request.Email)) throw new InvalidOperationException("User already exists");
+
+            if (!Enum.IsDefined(typeof(UserRole), request.Role)) throw new ArgumentException("Invalid user role");
 
             var user = new User
             {
                 FullName = request.FullName,
                 Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                UserRole = request.Role,
             };
 
             await _userRepository.AddAsync(user);
@@ -61,8 +65,7 @@ namespace KaryeramAPI.Services
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(90),
-                Path = "/",
-                Domain = "localhost"
+                Path = "/"
             });
 
             var claims = new[]
@@ -73,16 +76,12 @@ namespace KaryeramAPI.Services
             };
 
             var accessToken = JwtHelper.GenerateJwtToken(user, _config, claims);
-            return new AuthResponse
-            {
-                User = new UserDto(user.Email, user.UserRole.ToString()),
-                AccessToken = accessToken,
-            };
+            return new AuthResponse { AccessToken = accessToken };
         }
 
-        public async Task<AuthResponse> RefreshTokenAsync(string rawToken, HttpContext httpContext)
+        public async Task<AuthResponse> RefreshTokenAsync(string tokenHash, HttpContext httpContext)
         {
-            var storedToken = await _tokenRepository.GetRefreshTokenAsync(rawToken) ?? throw new Exception("Invalid or expired refresh token");
+            var storedToken = await _tokenRepository.GetRefreshTokenAsync(tokenHash) ?? throw new Exception("Invalid or expired refresh token");
             await _tokenRepository.RevokeAsync(storedToken.Id);
 
             var newRefreshToken = JwtHelper.GenerateRefreshToken();
@@ -101,8 +100,7 @@ namespace KaryeramAPI.Services
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(90),
-                Path = "/",
-                Domain = "localhost"
+                Path = "/"
             });
 
             var claims = new[]
@@ -113,11 +111,7 @@ namespace KaryeramAPI.Services
             };
 
             var newAccessToken = JwtHelper.GenerateJwtToken(storedToken.User, _config, claims);
-            return new AuthResponse {
-                User = new UserDto(storedToken.User.Email, storedToken.User.UserRole.ToString()),
-                AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken 
-            };
+            return new AuthResponse { AccessToken = newAccessToken };
         }
 
         public async Task<User?> GetUserByRefreshTokenAsync(string rawToken)
@@ -127,12 +121,7 @@ namespace KaryeramAPI.Services
             return tokenEntity.User;
         }
 
-        public async Task<User?> GetUserByIdAsync(int id)
-        {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null) return null;
-            return user;
-        }
+        public async Task<User?> GetUserByIdAsync(int id) => await _userRepository.GetByIdAsync(id);
 
     }
 

@@ -1,4 +1,5 @@
-﻿using KaryeramAPI.Models;
+﻿using KaryeramAPI.DTOs;
+using KaryeramAPI.Models;
 using KaryeramAPI.Repositories;
 
 namespace KaryeramAPI.Services
@@ -12,29 +13,28 @@ namespace KaryeramAPI.Services
             _jobSeekerRepository = jobSeekerRepository;
         }
 
-        public async Task<JobSeekerProfile> GetJobSeekerProfileByIdAsync(int id)
+        public async Task<JobSeekerProfile?> GetJobSeekerProfileByIdAsync(int id) => await _jobSeekerRepository.GetProfileByIdAsync(id);
+
+        public async Task<JobSeekerProfile?> GetJobSeekerProfileByUserIdAsync(int userId) => await _jobSeekerRepository.GetProfileByUserIdAsync(userId);
+
+        public async Task<JobSeekerProfile> AddProfile(int userId, JobSeekerProfileDTO dto)
         {
-            var jobSeekerProfile = await _jobSeekerRepository.GetProfileByIdAsync(id);
+            var checkProfile = await _jobSeekerRepository.GetProfileByUserIdAsync(userId);
+            if (checkProfile != null) return null!;
 
-            if (jobSeekerProfile == null)
+            var jobSeekerProfile = new JobSeekerProfile
             {
-                throw new KeyNotFoundException("Employer profile not found.");
-            }
+                UserId = userId,
+                FullName = dto.FullName,
+                ContactEmail = dto.ContactEmail,
+                ContactPhone = dto.ContactPhone,
+                DateOfBirth = dto.DateOfBirth,
+                ProfilePictureUrl = dto.ProfilePictureUrl
+            };
 
-            return jobSeekerProfile;
+            var result = await _jobSeekerRepository.AddAsync(jobSeekerProfile);
+
+            return result;
         }
-
-        public async Task<JobSeekerProfile> GetJobSeekerProfileByUserIdAsync(int userId)
-        {
-            var jobSeekerProfile = await _jobSeekerRepository.GetProfileByUserIdAsync(userId);
-
-            if (jobSeekerProfile == null)
-            {
-                throw new KeyNotFoundException("Employer profile not found.");
-            }
-
-            return jobSeekerProfile;
-        }
-
     }
 }

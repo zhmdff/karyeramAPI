@@ -1,4 +1,6 @@
-﻿namespace KaryeramAPI.Models
+﻿using static KaryeramAPI.Enums.Enums;
+
+namespace KaryeramAPI.Models
 {
     public class User
     {
@@ -17,11 +19,5 @@
         public JobSeekerProfile? JobSeekerProfile { get; set; }
     }
 
-    public enum UserRole
-    {
-        Admin,
-        Employer,
-        JobSeeker,
-        Guest
-    }
+    
 }

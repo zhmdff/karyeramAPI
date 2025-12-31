@@ -6,6 +6,6 @@ namespace KaryeramAPI.Repositories
     {
         Task<EmployerProfile?> GetProfileByIdAsync(int id);
         Task<EmployerProfile?> GetProfileByUserIdAsync(int userId);
-        Task AddAsync(EmployerProfile employerProfile);
+        Task<EmployerProfile> AddAsync(EmployerProfile employerProfile);
     }
 }

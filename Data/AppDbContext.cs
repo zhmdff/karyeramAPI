@@ -1,6 +1,7 @@
 ﻿using KaryeramAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
+using static KaryeramAPI.Enums.Enums;
 
 namespace KaryeramAPI.Data
 {

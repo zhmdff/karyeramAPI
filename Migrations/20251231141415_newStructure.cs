@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace KaryeramAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class Update : Migration
+    public partial class newStructure : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -80,6 +80,7 @@ namespace KaryeramAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Industry = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
                     CompanyWebsite = table.Column<string>(type: "varchar(200)", unicode: false, maxLength: 200, nullable: true),
                     ContactEmail = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
@@ -106,6 +107,7 @@ namespace KaryeramAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContactEmail = table.Column<string>(type: "varchar(100)", unicode: false, maxLength: 100, nullable: true),
                     ContactPhone = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),

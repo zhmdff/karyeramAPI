@@ -1,5 +1,6 @@
 ﻿using Azure;
 using KaryeramAPI.DTOs;
+using KaryeramAPI.Helpers;
 using KaryeramAPI.Models;
 using KaryeramAPI.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace KaryeramAPI.Controllers
 {
@@ -14,15 +17,11 @@ namespace KaryeramAPI.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IEmployerService _employerService;
-        private readonly IJobSeekerService _jobSeekerService;
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IEmployerService employerService, IJobSeekerService jobSeekerService, IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
-            _employerService = employerService;
-            _jobSeekerService = jobSeekerService;
             _authService = authService;
             _logger=logger;
         }
@@ -49,48 +48,20 @@ namespace KaryeramAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("verify")]
-        public async Task<IActionResult> Verify()
-        {
-            return Ok(new { message = "Token is valid" });
-        }
-
-        [Authorize]
-        [HttpGet("profile")]
-        public async Task<IActionResult> Profile()
+        [HttpGet("account")]
+        public async Task<IActionResult> Account()
         {
             try
             {
-                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(userIdStr, out var userId))
-                    return Unauthorized();
-
+                var userId = User.GetUserId();
                 var result = await _authService.GetUserByIdAsync(userId);
-                if (result == null)
-                    return NotFound();
-
-                switch (result.UserRole.ToString().ToLower())
-                {
-                    case "jobseeker":
-                        result.JobSeekerProfile = await _jobSeekerService.GetJobSeekerProfileByUserIdAsync(userId);
-                        break;
-                    case "employer":
-                        result.EmployerProfile = await _employerService.GetEmployerProfileByUserIdAsync(userId);
-                        break;
-                    case "guest":
-                        break;
-                    default:
-                        return BadRequest("Invalid user role");
-                }
+                if (result == null) return NotFound();
+                var userRole = result.UserRole.ToString();
 
                 return Ok(new UserProfileResponse
                 {
-                    Id = result.Id,
-                    Name = result.FullName,
                     Email = result.Email,
-                    Role = result.UserRole.ToString(),
-                    JobSeekerProfile = result.JobSeekerProfile,
-                    EmployerProfile = result.EmployerProfile,
+                    Role = userRole,
                 });
             }
             catch (Exception ex)
@@ -100,16 +71,19 @@ namespace KaryeramAPI.Controllers
             }
         }
 
-
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
             if (!Request.Cookies.TryGetValue("refreshToken", out var rawToken)) return Unauthorized();
+            _logger.LogError($"Refreshing {rawToken}");
+
+            var decodedToken = Uri.UnescapeDataString(rawToken);
+            var tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(decodedToken)));
 
             AuthResponse result;
             try
             {
-                result = await _authService.RefreshTokenAsync(rawToken, HttpContext);
+                result = await _authService.RefreshTokenAsync(tokenHash, HttpContext);
                 _logger.LogInformation("Ok Lil Bro");
             }
             catch (SecurityTokenException)
@@ -125,7 +99,6 @@ namespace KaryeramAPI.Controllers
 
             return Ok(new
             {
-                result.User,
                 result.AccessToken,
                 result.AccessTokenExpiresIn
             });

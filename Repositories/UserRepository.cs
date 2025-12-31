@@ -9,14 +9,11 @@ namespace KaryeramAPI.Repositories
         private readonly AppDbContext _context;
         public UserRepository(AppDbContext context) => _context = context;
 
-        public Task<bool> ExistsByEmailAsync(string email) =>
-            _context.Users.AnyAsync(u => u.Email == email);
+        public Task<bool> ExistsByEmailAsync(string email) => _context.Users.AnyAsync(u => u.Email == email);
 
-        public Task<User?> GetByEmailAsync(string email) =>
-            _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        public Task<User?> GetByEmailAsync(string email) => _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        public Task<User?> GetByIdAsync(int id) =>
-            _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        public Task<User?> GetByIdAsync(int id) => _context.Users.FirstOrDefaultAsync(u => u.Id == id);
 
         public async Task AddAsync(User user)
         {

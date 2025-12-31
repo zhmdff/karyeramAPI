@@ -7,7 +7,7 @@ namespace KaryeramAPI.Services
     {
         Task<AuthResponse> RegisterAsync(RegisterRequest request);
         Task<AuthResponse> LoginAsync(LoginRequest request, HttpContext httpContext);
-        Task<AuthResponse> RefreshTokenAsync(string rawToken, HttpContext httpContext);
+        Task<AuthResponse> RefreshTokenAsync(string tokenHash, HttpContext httpContext);
         Task<User?> GetUserByRefreshTokenAsync(string rawToken);
         Task<User?> GetUserByIdAsync(int id);
     }

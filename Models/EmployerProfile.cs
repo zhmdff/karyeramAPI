@@ -3,6 +3,7 @@
     public class EmployerProfile
     {
         public int Id { get; set; }
+        public string CompanyName { get; set; } = null!;
         public string? Industry { get; set; }
         public string? CompanyWebsite { get; set; }
         public string? ContactEmail { get; set; }

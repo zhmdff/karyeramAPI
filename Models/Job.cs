@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using static KaryeramAPI.Enums.Enums;
 
 namespace KaryeramAPI.Models
 {

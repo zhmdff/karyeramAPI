@@ -1,5 +1,6 @@
 ﻿using KaryeramAPI.Models;
 using System.ComponentModel.DataAnnotations;
+using static KaryeramAPI.Enums.Enums;
 
 namespace KaryeramAPI.DTOs
 {
@@ -13,6 +14,9 @@ namespace KaryeramAPI.DTOs
 
         [Required, MinLength(8)]
         public string Password { get; set; } = null!;
+
+        [Required]
+        public UserRole Role { get; set; } = UserRole.JobSeeker;
     }
 
     public class LoginRequest
@@ -26,23 +30,20 @@ namespace KaryeramAPI.DTOs
 
     public class AuthResponse
     {
-        public UserDto User { get; set; } = null!;
         public string AccessToken { get; set; } = string.Empty;
         public int AccessTokenExpiresIn  { get; set; } = 900;
-        public string RefreshToken { get; set; } = string.Empty;
     }
-
-    public record UserDto(string Email, string Role);
 
     public class UserProfileResponse
     {
-        public int Id { get; set; }
-        public string Email { get; set; }
-        public string Name { get; set; }
-        public string Role { get; set; }
+        public string Email { get; set; } = null!;
+        public string Role { get; set; } = null!;
+    }
 
-        public JobSeekerProfile? JobSeekerProfile { get; set; }
-        public EmployerProfile? EmployerProfile { get; set; }
+    public class UserAccountResponse
+    {
+        public string Email { get; set; } = null!;
+        public string Role { get; set; } = null!;
     }
 
 }

@@ -18,10 +18,8 @@ namespace KaryeramAPI.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<RefreshToken?> GetRefreshTokenAsync(string rawToken)
+        public async Task<RefreshToken?> GetRefreshTokenAsync(string tokenHash)
         {
-            var tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
-
             return await _context.RefreshTokens
                 .Include(t => t.User)
                 .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && !t.IsRevoked && t.ExpiresAt > DateTime.UtcNow);
