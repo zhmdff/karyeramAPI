@@ -36,6 +36,7 @@ namespace KaryeramAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            _logger.LogError("salam");
             try
             {
                 var result = await _authService.LoginAsync(request, HttpContext);
@@ -75,7 +76,6 @@ namespace KaryeramAPI.Controllers
         public async Task<IActionResult> Refresh()
         {
             if (!Request.Cookies.TryGetValue("refreshToken", out var rawToken)) return Unauthorized();
-            _logger.LogError($"Refreshing {rawToken}");
 
             var decodedToken = Uri.UnescapeDataString(rawToken);
             var tokenHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(decodedToken)));
